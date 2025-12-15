@@ -117,8 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorMsg);
             }
 
-            const blob = await response.blob();
-            processedBlobUrl = URL.createObjectURL(blob);
+            const data = await response.json();
+            processedBlobUrl = data.processedImage; // Base64 Data URL
+            const savedImageUrl = data.imageUrl;
 
             // Show Result
             processedImage.src = processedBlobUrl;
@@ -132,6 +133,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const downloadBtn = document.getElementById('downloadBtn');
                 downloadBtn.href = processedBlobUrl;
+
+                // Display Saved Image Link - Check if exists, else create
+                let linkContainer = document.getElementById('savedLinkContainer');
+                if (!linkContainer) {
+                    linkContainer = document.createElement('div');
+                    linkContainer.id = 'savedLinkContainer';
+                    linkContainer.className = 'saved-link-container';
+                    resultActions.parentNode.insertBefore(linkContainer, resultActions.nextSibling);
+                }
+
+                linkContainer.innerHTML = `
+                   <a href="${savedImageUrl}" target="_blank" class="db-link">
+                      <i class="fa-solid fa-link"></i> Saved Image Link
+                   </a>
+                `;
+                linkContainer.classList.remove('hidden');
             };
 
         } catch (err) {

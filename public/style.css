@@ -482,3 +482,30 @@ h1 {
 .btn-copy-static:active {
   transform: scale(0.95);
 }
+/* Saved Image Link */
+.saved-link-container {
+    margin-top: 1rem;
+    text-align: center;
+    animation: fadeInUp 0.5s ease-out 0.2s backwards;
+}
+
+.db-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.db-link:hover {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-2px);
+}
