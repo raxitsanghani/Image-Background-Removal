@@ -12,9 +12,19 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // MongoDB Connection
-mongoose.connect('mongodb://localhost:27017/removebg_db')
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/removebg_db';
+let isDbConnected = false;
+
+mongoose.connect(MONGODB_URI)
+    .then(() => {
+        console.log('Connected to MongoDB');
+        isDbConnected = true;
+    })
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        console.log('Running in basic mode (no database storage).');
+    });
 
 // Image Schema
 const imageSchema = new mongoose.Schema({
@@ -28,12 +38,16 @@ const imageSchema = new mongoose.Schema({
 const Image = mongoose.model('Image', imageSchema);
 
 // Configuration
-const API_KEY = 'YMXgeRV9Ci4p17iamTDauxxa'; // Using the key from original project
+const API_KEY = process.env.REMOVE_BG_API_KEY || 'YMXgeRV9Ci4p17iamTDauxxa';
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
 
 // Ensure uploads directory exists
 if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    try {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    } catch (e) {
+        console.error("Could not create uploads dir", e);
+    }
 }
 
 // Middleware - Increase limits for unlimited size
@@ -60,6 +74,7 @@ const upload = multer({
 
 // Serve Image Route
 app.get('/api/images/:id', async (req, res) => {
+    if (!isDbConnected) return res.status(503).send("Database not connected");
     try {
         const image = await Image.findById(req.params.id);
         if (!image) {
@@ -80,26 +95,33 @@ app.post('/api/remove-bg', upload.single('image_file'), async (req, res) => {
     }
 
     const filePath = req.file.path;
+    let savedImageUrl = null;
 
     try {
-        // 1. Save Original Image to MongoDB
-        const fileData = fs.readFileSync(filePath);
+        // 1. Save Original Image to MongoDB (Only if connected)
+        if (isDbConnected) {
+            try {
+                const fileData = fs.readFileSync(filePath);
+                const newImage = new Image({
+                    filename: req.file.originalname,
+                    contentType: req.file.mimetype,
+                    data: fileData
+                });
 
-        const newImage = new Image({
-            filename: req.file.originalname,
-            contentType: req.file.mimetype,
-            data: fileData
-        });
+                // Generate URL
+                const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+                const host = req.get('host');
+                newImage.imageUrl = `${protocol}://${host}/api/images/${newImage._id}`;
 
-        // Generate URL without saving twice
-        const protocol = req.protocol;
-        const host = req.get('host');
-        // If host is localhost, we rely on it. In production, use process.env.BASE_URL
-        newImage.imageUrl = `${protocol}://${host}/api/images/${newImage._id}`;
-
-        await newImage.save();
-        console.log(`Image saved to MongoDB: ${newImage._id}`);
-        console.log(`Image Link: ${newImage.imageUrl}`);
+                await newImage.save();
+                savedImageUrl = newImage.imageUrl;
+                console.log(`Image saved to MongoDB: ${newImage._id}`);
+            } catch (dbErr) {
+                console.error("Failed to save to MongoDB (continuing without save):", dbErr);
+            }
+        } else {
+            console.log("Skipping DB save (DB not connected)");
+        }
 
         // 2. Process with Remove.bg
         const formData = new FormData();
@@ -111,7 +133,7 @@ app.post('/api/remove-bg', upload.single('image_file'), async (req, res) => {
                 ...formData.getHeaders(),
                 'X-Api-Key': API_KEY,
             },
-            responseType: 'arraybuffer', // Important to handle binary data
+            responseType: 'arraybuffer',
         });
 
         // Send JSON response with Image Link and Processed Image
@@ -120,7 +142,7 @@ app.post('/api/remove-bg', upload.single('image_file'), async (req, res) => {
 
         res.json({
             success: true,
-            imageUrl: newImage.imageUrl,
+            imageUrl: savedImageUrl, // Might be null if DB failed/not connected
             processedImage: processedDataUrl
         });
 
