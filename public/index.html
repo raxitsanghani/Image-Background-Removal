@@ -70,16 +70,24 @@
 
         <div class="image-wrapper processed bounce-in delay-100">
           <div class="label-badge success">Result</div>
+
           <div class="placeholder-result" id="placeholderResult">
             <i class="fa-solid fa-image"></i>
             <p>Result will appear here</p>
           </div>
-          <img id="processedImage" alt="Processed" class="hidden" />
 
-          <a id="downloadBtn" href="#" download="no-bg.png" class="btn btn-download hidden">
-            <i class="fa-solid fa-download"></i> Download HD
-          </a>
+          <img id="processedImage" alt="Processed" class="hidden" />
         </div>
+      </div>
+
+      <!-- Action Buttons (Result) -->
+      <div id="resultActions" class="result-actions hidden">
+        <a id="downloadBtn" href="#" download="no-bg.png" class="btn btn-download-static">
+          <i class="fa-solid fa-download"></i> Download HD
+        </a>
+        <button id="copyBtn" class="btn btn-copy-static" title="Copy Image">
+          <i class="fa-regular fa-copy"></i>
+        </button>
       </div>
 
     </div>

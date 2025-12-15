@@ -62,8 +62,19 @@ app.post('/api/remove-bg', upload.single('image_file'), async (req, res) => {
         res.send(response.data);
 
     } catch (error) {
-        console.error('Error processing image:', error.response ? error.response.data.toString() : error.message);
-        res.status(500).json({ error: 'Failed to remove background' });
+        const errData = error.response ? error.response.data.toString() : error.message;
+        console.error('Error processing image:', errData);
+
+        // Try to parse JSON error from upstream
+        let clientError = { error: 'Failed to remove background' };
+        try {
+            const jsonErr = JSON.parse(errData);
+            if (jsonErr.errors) clientError = { error: jsonErr.errors[0].title };
+        } catch (e) {
+            // Not JSON, keep default
+        }
+
+        res.status(error.response ? error.response.status : 500).json(clientError);
     } finally {
         // Clean up uploaded file
         fs.unlink(filePath, (err) => {

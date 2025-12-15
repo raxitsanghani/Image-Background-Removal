@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset Result View
         processedImage.classList.add('hidden');
-        downloadBtn.classList.add('hidden');
+        document.getElementById('resultActions').classList.add('hidden');
         placeholderResult.classList.remove('hidden');
 
         // Cleanup old blob
@@ -100,8 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Failed to process image');
+                let errorMsg = 'Failed to process image';
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.error || errorMsg;
+                } catch (e) {
+                    console.error('Response was not JSON:', e);
+                    const text = await response.text();
+                    console.error('Response body:', text);
+                    if (response.status === 404) {
+                        errorMsg = 'Server endpoint not found (404). Check API URL.';
+                    } else {
+                        errorMsg = `Server error (${response.status}): ${text.substring(0, 50)}...`;
+                    }
+                }
+                throw new Error(errorMsg);
             }
 
             const blob = await response.blob();
@@ -112,8 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
             processedImage.classList.remove('hidden');
             processedImage.onload = () => {
                 placeholderResult.classList.add('hidden');
+
+                // Show Result Actions (Download & Copy)
+                const resultActions = document.getElementById('resultActions');
+                resultActions.classList.remove('hidden');
+
+                const downloadBtn = document.getElementById('downloadBtn');
                 downloadBtn.href = processedBlobUrl;
-                downloadBtn.classList.remove('hidden');
             };
 
         } catch (err) {
@@ -136,6 +154,35 @@ document.addEventListener('DOMContentLoaded', () => {
             removeBgBtn.style.opacity = '1';
             removeBgBtn.style.cursor = 'pointer';
         }
+    }
+
+    // --- Copy Functionality ---
+    const copyBtn = document.getElementById('copyBtn');
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            if (!processedBlobUrl) return;
+
+            try {
+                const response = await fetch(processedBlobUrl);
+                const blob = await response.blob();
+
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+
+                // Feedback
+                const originalIcon = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalIcon;
+                }, 2000);
+
+            } catch (err) {
+                console.error('Failed to copy/access blob', err);
+                showError('Could not copy image to clipboard.');
+            }
+        });
     }
 
     function showError(msg) {
