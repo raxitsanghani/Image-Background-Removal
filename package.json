@@ -1,0 +1,20 @@
+{
+  "name": "img-bg-rebuilt",
+  "version": "1.0.0",
+  "description": "Image Background Removal - Rebuilt with Vanilla JS and Node.js",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.5",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "form-data": "^4.0.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

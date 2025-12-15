@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Background Remover</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Icon Library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="background-animation"></div>
+
+  <main class="app-container">
+    <header class="app-header fade-in-down">
+      <div class="logo-container">
+        <i class="fa-solid fa-layer-group logo-icon"></i>
+        <h1>Remove<span class="highlight">BG</span></h1>
+      </div>
+      <p class="subtitle">Remove image backgrounds automatically in seconds.</p>
+    </header>
+
+    <div class="card glass-effect fade-in-up">
+
+      <!-- Upload Section -->
+      <div class="upload-section">
+        <div id="dropzone" class="dropzone">
+          <input type="file" id="fileInput" accept="image/*" hidden />
+          <div class="dropzone-content">
+            <div class="icon-circle">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <h3>Upload an Image</h3>
+            <p>Drag & drop or click to browse</p>
+            <span class="file-info hidden" id="fileName"></span>
+          </div>
+          <div class="loading-overlay hidden" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p>Processing Magic...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div id="buttonsContainer" class="actions-container hidden">
+        <button id="removeBgBtn" class="btn btn-primary">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Remove Background
+        </button>
+      </div>
+
+      <!-- Error Message -->
+      <div id="errorMsg" class="error-message hidden">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="errorText"></span>
+      </div>
+
+      <!-- Result Section -->
+      <div id="imageComparison" class="comparison-section hidden">
+        <div class="image-wrapper original bounce-in">
+          <div class="label-badge">Original</div>
+          <img id="originalImage" alt="Original" />
+        </div>
+
+        <div class="image-wrapper processed bounce-in delay-100">
+          <div class="label-badge success">Result</div>
+          <div class="placeholder-result" id="placeholderResult">
+            <i class="fa-solid fa-image"></i>
+            <p>Result will appear here</p>
+          </div>
+          <img id="processedImage" alt="Processed" class="hidden" />
+
+          <a id="downloadBtn" href="#" download="no-bg.png" class="btn btn-download hidden">
+            <i class="fa-solid fa-download"></i> Download HD
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
